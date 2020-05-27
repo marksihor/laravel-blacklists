@@ -13,12 +13,12 @@
     },
     "autoload": {
         "psr-4": {
-            "MarksIhor\\LaravelBlackLists\\": "src"
+            "MarksIhor\\LaravelBlacklists\\": "src"
         }
     },
     "extra": {
         "laravel": {
-            "providers": ["MarksIhor\\LaravelBlackLists\\BlacklistsServiceProvider"]
+            "providers": ["MarksIhor\\LaravelBlacklists\\BlacklistsServiceProvider"]
         }
     }
 }
