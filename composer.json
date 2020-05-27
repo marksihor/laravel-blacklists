@@ -18,7 +18,7 @@
     },
     "extra": {
         "laravel": {
-            "providers": ["MarksIhor\\LaravelBlackLists\\BlackListsServiceProvider"]
+            "providers": ["MarksIhor\\LaravelBlackLists\\BlacklistsServiceProvider"]
         }
     }
 }
