@@ -2,6 +2,7 @@
 
 namespace MarksIhor\LaravelBlacklists;
 
+use Illuminate\Support\Facades\Cache;
 use MarksIhor\LaravelBlacklists\Blacklist;
 
 trait Blacklistable
@@ -9,6 +10,13 @@ trait Blacklistable
     public function blacklists()
     {
         return $this->morphMany(Blacklist::class, 'blacklistable');
+    }
+
+    public function getBlacklists()
+    {
+        return Cache::rememberForever($this->getUniqueCacheName(), function () {
+            return $this->blacklists->toArray();
+        });
     }
 
     public function addToBlacklist(string $type, string $value): string
@@ -22,6 +30,9 @@ trait Blacklistable
             'value' => $value
         ]);
 
+        Cache::forget($this->getUniqueCacheName());
+        Cache::forget($this->getUniqueCacheName($type, $value));
+
         return 'Added to blacklist';
     }
 
@@ -29,17 +40,22 @@ trait Blacklistable
     {
         if (!$this->checkIfInBlackList($type, $value)) return 'Not in blacklist.';
 
-        $this->query($type, $value)->delete();
+        $this->getQuery($type, $value)->delete();
+
+        Cache::forget($this->getUniqueCacheName());
+        Cache::forget($this->getUniqueCacheName($type, $value));
 
         return 'Removed from blacklist.';
     }
 
     public function checkIfInBlackList(string $type, string $value): bool
     {
-        return $this->query($type, $value)->exists();
+        return Cache::rememberForever($this->getUniqueCacheName($type, $value), function () use ($type, $value) {
+            return $this->getQuery($type, $value)->exists();
+        });
     }
 
-    private function query(string $type, string $value)
+    private function getQuery(string $type, string $value)
     {
         return Blacklist::where([
             'blacklistable_id' => $this->id,
@@ -47,5 +63,10 @@ trait Blacklistable
             'type' => $type,
             'value' => $value
         ]);
+    }
+
+    private function getUniqueCacheName(?string $type = null, $value = null): string
+    {
+        return md5($this->getMorphClass() . '-' . $this->id . '-' . $type . '-' . $value);
     }
 }
